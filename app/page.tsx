@@ -1,3 +1,4 @@
+
 "use client";
 
 import dynamic from "next/dynamic";
@@ -24,8 +25,11 @@ const days = [
 
 export default function Home() {
   const [activeDay, setActiveDay] = useState("Все дни");
-  console.log("Всего мест:", placesData.length);
-console.log("Первое место:", placesData[0]);
+
+  const filteredPlaces =
+    activeDay === "Все дни"
+      ? placesData
+      : placesData.filter((place) => place.day === activeDay);
 
   return (
     <main className="app">
@@ -34,6 +38,9 @@ console.log("Первое место:", placesData[0]);
           <div className="eyebrow">JANUARY 2027</div>
           <h1>Пекин</h1>
           <p>Наше большое путешествие по Китаю</p>
+          <div className="places-count">
+            {filteredPlaces.length} мест
+          </div>
         </div>
 
         <div className="filters">
@@ -59,10 +66,24 @@ console.log("Первое место:", placesData[0]);
           ))}
         </div>
 
-        <div className="empty">
-          <span>✦</span>
-          <h2>Скоро здесь будут наши места</h2>
-          <p>Добавим все точки из каталога и распределим их по дням.</p>
+        <div className="places-list">
+          {filteredPlaces.map((place) => (
+            <div className="place-item" key={place.id}>
+              <div className="place-item-top">
+                <h3>{place.name}</h3>
+                <span className="place-day">{place.day}</span>
+              </div>
+              <p>{place.nameEn}</p>
+              <span className="place-category">{place.category}</span>
+            </div>
+          ))}
+
+          {filteredPlaces.length === 0 && (
+            <div className="empty">
+              <h2>Пока здесь пусто</h2>
+              <p>В этот день места ещё не распределены.</p>
+            </div>
+          )}
         </div>
       </aside>
 
