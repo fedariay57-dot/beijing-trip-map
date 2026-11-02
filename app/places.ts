@@ -7,10 +7,12 @@ export type Place = {
   description: string;
   price: string;
   day: string;
+  days: string[];
   category: string;
   lat: number | null;
   lng: number | null;
   amapUrl: string;
+  mapType: string;
+  coordinateStatus: string;
 };
 
-export const places: Place[] = [];
