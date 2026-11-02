@@ -1,12 +1,15 @@
 "use client";
 
 import { MapContainer, TileLayer } from "react-leaflet";
+import type { LatLngExpression } from "leaflet";
+
+const beijingCenter: LatLngExpression = [39.9042, 116.4074];
 
 export default function MapView() {
   return (
     <div className="map-container">
       <MapContainer
-        center={[39.9042, 116.4074]}
+        center={beijingCenter}
         zoom={11}
         scrollWheelZoom={true}
         className="leaflet-map"
