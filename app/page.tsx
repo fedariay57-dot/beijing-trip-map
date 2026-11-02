@@ -38,6 +38,7 @@ export default function Home() {
           <div className="eyebrow">JANUARY 2027</div>
           <h1>Пекин</h1>
           <p>Наше большое путешествие по Китаю</p>
+
           <div className="places-count">
             {filteredPlaces.length} мест
           </div>
@@ -73,6 +74,7 @@ export default function Home() {
                 <h3>{place.name}</h3>
                 <span className="place-day">{place.day}</span>
               </div>
+
               <p>{place.nameEn}</p>
               <span className="place-category">{place.category}</span>
             </div>
@@ -88,7 +90,7 @@ export default function Home() {
       </aside>
 
       <section className="map-area">
-        <MapView />
+        <MapView places={filteredPlaces} />
       </section>
     </main>
   );
