@@ -1,4 +1,6 @@
-import type { Place } from "./places";\n\nexport const placesData: Place[] = [
+import type { Place } from "./places";
+
+export const placesData: Place[] = [
   {
     "id": "place-001",
     "name": "Аэропорт Пекин Дасин",
