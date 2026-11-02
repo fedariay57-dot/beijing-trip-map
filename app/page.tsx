@@ -2,129 +2,110 @@
 
 import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
+import { Search, X, MapPin, Copy, ExternalLink, SlidersHorizontal, LocateFixed } from "lucide-react";
 import { placesData } from "./places-data";
+import type { Place } from "./places";
 
 const MapView = dynamic(() => import("./MapView"), {
   ssr: false,
   loading: () => <div className="map-loading">Загружаем карту Пекина...</div>,
 });
 
-const days = [
-  { name: "3 января", color: "#E53935" },
-  { name: "4 января", color: "#FB8C00" },
-  { name: "5 января", color: "#FDD835" },
-  { name: "6 января", color: "#1E88E5" },
-  { name: "7 января", color: "#8E24AA" },
-  { name: "8 января", color: "#00ACC1" },
-  { name: "9 января", color: "#43A047" },
-  { name: "10 января", color: "#EC407A" },
-  { name: "11 января", color: "#795548" },
-  { name: "Без даты", color: "#929292" },
-];
+const days = ["Все дни", "3 января", "4 января", "5 января", "6 января", "7 января", "8 января", "9 января", "10 января", "11 января", "Без даты"];
+const categoryIcons: Record<string, string> = {
+  "транспорт":"🚇","отель":"🏨","еда":"🥢","улицы и кварталы":"🏮","история и храмы":"⛩️",
+  "музеи":"🏛️","аквапарки":"🏊","SPA и термы":"♨️","шопинг":"🛍️","парки":"🌳",
+  "природа":"🌿","архитектура и город":"🏙️","бары":"🍸","парки развлечений":"🎢","аттракционы":"🎡"
+};
 
 export default function Home() {
   const [activeDay, setActiveDay] = useState("Все дни");
+  const [activeCategory, setActiveCategory] = useState("Все категории");
   const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<Place | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [onlyMapped, setOnlyMapped] = useState(false);
 
-  const filteredPlaces = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
-
-    return placesData.filter((place) => {
-      const matchesDay =
-        activeDay === "Все дни" || place.days.includes(activeDay);
-
-      const searchable = [
-        place.name,
-        place.nameEn,
-        place.nameZh,
-        place.addressZh,
-        place.category,
-      ].join(" ").toLowerCase();
-
-      return matchesDay && (!normalizedSearch || searchable.includes(normalizedSearch));
+  const categories = useMemo(() => ["Все категории", ...Array.from(new Set(placesData.map(p => p.category).filter(Boolean))).sort((a,b)=>a.localeCompare(b,"ru"))], []);
+  const filtered = useMemo(() => {
+    const q = search.trim().toLocaleLowerCase();
+    return placesData.filter(p => {
+      const dayOk = activeDay === "Все дни" || p.days.includes(activeDay);
+      const categoryOk = activeCategory === "Все категории" || p.category === activeCategory;
+      const queryOk = !q || [p.name,p.nameEn,p.nameZh,p.addressZh,p.category].join(" ").toLocaleLowerCase().includes(q);
+      const mapOk = !onlyMapped || (p.lat != null && p.lng != null);
+      return dayOk && categoryOk && queryOk && mapOk;
     });
-  }, [activeDay, search]);
+  }, [activeDay, activeCategory, search, onlyMapped]);
 
-  const mappedCount = filteredPlaces.filter(
-    (place) => place.lat !== null && place.lng !== null
-  ).length;
+  const mappedCount = filtered.filter(p => p.lat != null && p.lng != null).length;
+  const selectPlace = (place: Place) => setSelected(place);
+  const copyText = async (value: string) => {
+    try { await navigator.clipboard.writeText(value); } catch { /* clipboard may be unavailable in an insecure context */ }
+  };
 
   return (
-    <main className="app">
+    <main className="app-shell">
       <aside className="sidebar">
-        <div className="header">
-          <div className="eyebrow">JANUARY 2027</div>
-          <h1>Пекин</h1>
-          <p>Наше большое путешествие по Китаю</p>
-          <div className="places-count">
-            {filteredPlaces.length} мест · {mappedCount} на карте
+        <header className="sidebar-header">
+          <div className="eyebrow">JANUARY 2027 · TRIP PLANNER</div>
+          <div className="heading-row">
+            <div><h1>Пекин</h1><p>Карта нашего путешествия</p></div>
+            <div className="total-badge"><strong>{placesData.length}</strong><span>мест</span></div>
           </div>
+        </header>
+
+        <div className="search-box">
+          <Search size={19} />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Найти место на трёх языках..." />
+          {search && <button className="icon-button" onClick={() => setSearch("")} aria-label="Очистить поиск"><X size={17}/></button>}
         </div>
 
-        <div className="filters">
-          <button
-            className={activeDay === "Все дни" ? "active" : ""}
-            onClick={() => setActiveDay("Все дни")}
-          >
-            Все дни
+        <section className="filter-section">
+          <div className="section-heading"><span>Дни поездки</span><button className="text-button" onClick={() => setActiveDay("Все дни")}>Сбросить</button></div>
+          <div className="day-filters">
+            {days.map(day => <button key={day} className={`day-chip ${activeDay===day?"active":""}`} onClick={()=>setActiveDay(day)}>{day}</button>)}
+          </div>
+        </section>
+
+        <section className="filter-section">
+          <button className="section-heading filter-toggle" onClick={()=>setShowFilters(v=>!v)}>
+            <span><SlidersHorizontal size={15}/> Категории и отображение</span><span>{showFilters?"−":"+"}</span>
           </button>
-          {days.map((day) => (
-            <button
-              key={day.name}
-              className={activeDay === day.name ? "active" : ""}
-              onClick={() => setActiveDay(day.name)}
-            >
-              <span className="dot" style={{ backgroundColor: day.color }} />
-              {day.name}
-            </button>
-          ))}
-        </div>
+          {showFilters && <div className="advanced-filters">
+            <label className="select-label">Категория</label>
+            <select value={activeCategory} onChange={e=>setActiveCategory(e.target.value)}>
+              {categories.map(c=><option key={c}>{c}</option>)}
+            </select>
+            <label className="check-row"><input type="checkbox" checked={onlyMapped} onChange={e=>setOnlyMapped(e.target.checked)}/> Только места с метками на карте</label>
+          </div>}
+        </section>
 
-        <div style={{ padding: "0 16px 12px" }}>
-          <input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Найти место на RU / EN / 中文"
-            aria-label="Поиск по местам"
-            style={{
-              width: "100%",
-              boxSizing: "border-box",
-              padding: "11px 12px",
-              border: "1px solid #ddd",
-              borderRadius: 10,
-              fontSize: 14,
-            }}
-          />
-        </div>
+        {selected && <section className="selected-card">
+          <div className="selected-top"><span className="selected-label">ВЫБРАННОЕ МЕСТО</span><button className="icon-button" onClick={()=>setSelected(null)} aria-label="Закрыть карточку"><X size={17}/></button></div>
+          <h2>{selected.name}</h2>
+          <p className="english-name">{selected.nameEn}</p>
+          <div className="chinese-row"><span>{selected.nameZh}</span><button onClick={()=>copyText(selected.nameZh)} title="Скопировать китайское название"><Copy size={15}/></button></div>
+          {selected.addressZh && <div className="chinese-row address-row"><span>{selected.addressZh}</span><button onClick={()=>copyText(selected.addressZh)} title="Скопировать адрес"><Copy size={15}/></button></div>}
+          <p className="selected-description">{selected.description}</p>
+          {selected.price && <p className="price-line">Примерная цена: <b>{selected.price} ¥</b></p>}
+          <div className="selected-meta"><span>{selected.days.join(" · ")}</span><span>{categoryIcons[selected.category]||"📍"} {selected.category}</span></div>
+          {selected.lat == null || selected.lng == null ? <div className="no-coordinates"><MapPin size={16}/> Точная метка пока не установлена. Открой место в AMap, чтобы посмотреть расположение.</div> : <div className="coordinate-note"><LocateFixed size={15}/> Метка есть на карте</div>}
+          {selected.amapUrl && <a className="amap-button" href={selected.amapUrl} target="_blank" rel="noreferrer"><ExternalLink size={16}/> Открыть в AMap</a>}
+        </section>}
 
-        <div className="places-list">
-          {filteredPlaces.map((place) => (
-            <div className="place-item" key={place.id}>
-              <div className="place-item-top">
-                <h3>{place.name}</h3>
-                <span className="place-day">{place.days.join(", ")}</span>
-              </div>
-              <p>{place.nameEn}</p>
-              <span className="place-category">{place.category}</span>
-              {place.lat === null || place.lng === null ? (
-                <span style={{ display: "block", marginTop: 5, fontSize: 11, color: "#999" }}>
-                  Координаты уточняются
-                </span>
-              ) : null}
-            </div>
-          ))}
-          {filteredPlaces.length === 0 && (
-            <div className="empty">
-              <h2>Ничего не нашлось</h2>
-              <p>Попробуй изменить запрос или выбрать другой день.</p>
-            </div>
-          )}
+        <div className="results-heading"><div><strong>Места</strong><span>{filtered.length} найдено · {mappedCount} на карте</span></div><button className="text-button" onClick={()=>{setActiveDay("Все дни");setActiveCategory("Все категории");setSearch("");setOnlyMapped(false);}}>Сбросить всё</button></div>
+        <div className="places-results">
+          {filtered.map(place=><button key={place.id} className={`result-item ${selected?.id===place.id?"selected":""}`} onClick={()=>selectPlace(place)}>
+            <span className="result-icon">{categoryIcons[place.category]||"📍"}</span>
+            <span className="result-copy"><strong>{place.name}</strong><small>{place.nameEn}</small><span className="result-tags">{place.days.join(" · ")} <i>·</i> {place.category}</span></span>
+            <span className={`pin-status ${place.lat!=null&&place.lng!=null?"has-pin":""}`} title={place.lat!=null&&place.lng!=null?"Есть метка":"Координаты не найдены"}><MapPin size={15}/></span>
+          </button>)}
+          {filtered.length===0 && <div className="empty-results">Ничего не найдено. Попробуй другое название или сбрось фильтры.</div>}
         </div>
+        <footer className="sidebar-footer"><span><i className="legend-dot mapped"/> Метка установлена</span><span><i className="legend-dot missing"/> Нет координат</span></footer>
       </aside>
-
-      <section className="map-area">
-        <MapView places={filteredPlaces} />
-      </section>
+      <section className="map-panel"><MapView places={filtered} selectedPlace={selected} onSelect={selectPlace}/></section>
     </main>
   );
 }
