@@ -3,7 +3,7 @@ import "./globals.css";
 import "leaflet/dist/leaflet.css";
 
 export const metadata: Metadata = {
-  title: "Beijing Trip | Наша карта Пекина",
+  title: "Beijing Trip | Карта Пекина",
   description: "Интерактивная карта путешествия по Пекину",
 };
 
