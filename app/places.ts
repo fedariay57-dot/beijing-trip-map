@@ -15,4 +15,3 @@ export type Place = {
   mapType: string;
   coordinateStatus: string;
 };
-
