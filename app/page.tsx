@@ -3,6 +3,7 @@
 
 import dynamic from "next/dynamic";
 import { useMemo, useRef, useState } from "react";
+import type { PointerEvent } from "react";
 import {
   Search,
   X,
@@ -24,8 +25,17 @@ const MapView = dynamic(() => import("./MapView"), {
 });
 
 const days = [
-  "Все дни", "3 января", "4 января", "5 января", "6 января",
-  "7 января", "8 января", "9 января", "10 января", "11 января", "Без даты"
+  "Все дни",
+  "3 января",
+  "4 января",
+  "5 января",
+  "6 января",
+  "7 января",
+  "8 января",
+  "9 января",
+  "10 января",
+  "11 января",
+  "Без даты",
 ];
 
 const categoryIcons: Record<string, string> = {
@@ -43,7 +53,7 @@ const categoryIcons: Record<string, string> = {
   "архитектура и город": "🏙️",
   "бары": "🍸",
   "парки развлечений": "🎢",
-  "аттракционы": "🎡"
+  "аттракционы": "🎡",
 };
 
 type MobilePanelState = "collapsed" | "list" | "detail";
@@ -55,7 +65,8 @@ export default function Home() {
   const [selected, setSelected] = useState<Place | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [onlyMapped, setOnlyMapped] = useState(false);
-  const [mobilePanel, setMobilePanel] = useState<MobilePanelState>("collapsed");
+  const [mobilePanel, setMobilePanel] =
+    useState<MobilePanelState>("collapsed");
 
   const touchStartY = useRef<number | null>(null);
   const skipHandleClick = useRef(false);
@@ -65,8 +76,8 @@ export default function Home() {
     () => [
       "Все категории",
       ...Array.from(
-        new Set(placesData.map(p => p.category).filter(Boolean))
-      ).sort((a, b) => a.localeCompare(b, "ru"))
+        new Set(placesData.map((p) => p.category).filter(Boolean))
+      ).sort((a, b) => a.localeCompare(b, "ru")),
     ],
     []
   );
@@ -74,8 +85,9 @@ export default function Home() {
   const filtered = useMemo(() => {
     const q = search.trim().toLocaleLowerCase();
 
-    return placesData.filter(p => {
+    return placesData.filter((p) => {
       const dayOk = activeDay === "Все дни" || p.days.includes(activeDay);
+
       const categoryOk =
         activeCategory === "Все категории" || p.category === activeCategory;
 
@@ -93,12 +105,13 @@ export default function Home() {
   }, [activeDay, activeCategory, search, onlyMapped]);
 
   const mappedCount = filtered.filter(
-    p => p.lat != null && p.lng != null
+    (p) => p.lat != null && p.lng != null
   ).length;
 
   const selectPlace = (place: Place) => {
     setSelected(place);
     setMobilePanel("detail");
+
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = 0;
     }
@@ -107,6 +120,7 @@ export default function Home() {
   const closeSelected = () => {
     setSelected(null);
     setMobilePanel("list");
+
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = 0;
     }
@@ -130,12 +144,12 @@ export default function Home() {
     }
   };
 
-  const handlePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
+  const handlePointerDown = (event: PointerEvent<HTMLButtonElement>) => {
     touchStartY.current = event.clientY;
     skipHandleClick.current = false;
   };
 
-  const handlePointerUp = (event: React.PointerEvent<HTMLButtonElement>) => {
+  const handlePointerUp = (event: PointerEvent<HTMLButtonElement>) => {
     if (touchStartY.current === null) return;
 
     const difference = event.clientY - touchStartY.current;
@@ -177,6 +191,7 @@ export default function Home() {
               skipHandleClick.current = false;
               return;
             }
+
             cycleMobilePanel();
           }}
           onPointerDown={handlePointerDown}
@@ -185,12 +200,14 @@ export default function Home() {
           aria-label="Изменить высоту панели"
         >
           <span className="sheet-grabber" />
+
           <span className="sheet-handle-content">
             <span>
               {mobilePanel === "detail" && selected
                 ? selected.name
                 : `Места · ${filtered.length} найдено`}
             </span>
+
             {mobilePanel === "collapsed" ? (
               <ChevronUp size={19} />
             ) : (
@@ -202,11 +219,13 @@ export default function Home() {
         <div className="sidebar-scroll" ref={scrollContainerRef}>
           <header className="sidebar-header">
             <div className="eyebrow">JANUARY 2027 · TRIP PLANNER</div>
+
             <div className="heading-row">
               <div>
                 <h1>Пекин</h1>
                 <p>Карта нашего путешествия</p>
               </div>
+
               <div className="total-badge">
                 <strong>{placesData.length}</strong>
                 <span>мест</span>
@@ -216,11 +235,13 @@ export default function Home() {
 
           <div className="search-box">
             <Search size={19} />
+
             <input
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={(e) => setSearch(e.target.value)}
               placeholder="Найти место на трёх языках..."
             />
+
             {search && (
               <button
                 className="icon-button"
@@ -235,6 +256,7 @@ export default function Home() {
           <section className="filter-section">
             <div className="section-heading">
               <span>Дни поездки</span>
+
               <button
                 className="text-button"
                 onClick={() => setActiveDay("Все дни")}
@@ -242,11 +264,14 @@ export default function Home() {
                 Сбросить
               </button>
             </div>
+
             <div className="day-filters">
-              {days.map(day => (
+              {days.map((day) => (
                 <button
                   key={day}
-                  className={`day-chip ${activeDay === day ? "active" : ""}`}
+                  className={`day-chip ${
+                    activeDay === day ? "active" : ""
+                  }`}
                   onClick={() => setActiveDay(day)}
                 >
                   {day}
@@ -258,23 +283,25 @@ export default function Home() {
           <section className="filter-section">
             <button
               className="section-heading filter-toggle"
-              onClick={() => setShowFilters(v => !v)}
+              onClick={() => setShowFilters((v) => !v)}
             >
               <span>
                 <SlidersHorizontal size={15} />
                 Категории и отображение
               </span>
+
               <span>{showFilters ? "−" : "+"}</span>
             </button>
 
             {showFilters && (
               <div className="advanced-filters">
                 <label className="select-label">Категория</label>
+
                 <select
                   value={activeCategory}
-                  onChange={e => setActiveCategory(e.target.value)}
+                  onChange={(e) => setActiveCategory(e.target.value)}
                 >
-                  {categories.map(c => (
+                  {categories.map((c) => (
                     <option key={c}>{c}</option>
                   ))}
                 </select>
@@ -283,17 +310,20 @@ export default function Home() {
                   <input
                     type="checkbox"
                     checked={onlyMapped}
-                    onChange={e => setOnlyMapped(e.target.checked)}
+                    onChange={(e) => setOnlyMapped(e.target.checked)}
                   />
+
                   Только места с метками на карте
                 </label>
               </div>
-            </section>
+            )}
+          </section>
 
           {selected && (
             <section className="selected-card">
               <div className="selected-top">
                 <span className="selected-label">ВЫБРАННОЕ МЕСТО</span>
+
                 <button
                   className="icon-button"
                   onClick={closeSelected}
@@ -309,6 +339,7 @@ export default function Home() {
 
               <div className="chinese-row">
                 <span>{selected.nameZh}</span>
+
                 <button
                   onClick={() => copyText(selected.nameZh)}
                   title="Скопировать китайское название"
@@ -320,6 +351,7 @@ export default function Home() {
               {selected.addressZh && (
                 <div className="chinese-row address-row">
                   <span>{selected.addressZh}</span>
+
                   <button
                     onClick={() => copyText(selected.addressZh)}
                     title="Скопировать адрес"
@@ -329,7 +361,9 @@ export default function Home() {
                 </div>
               )}
 
-              <p className="selected-description">{selected.description}</p>
+              <p className="selected-description">
+                {selected.description}
+              </p>
 
               {selected.price && (
                 <p className="price-line">
@@ -339,16 +373,18 @@ export default function Home() {
 
               <div className="selected-meta">
                 <span>{selected.days.join(" · ")}</span>
+
                 <span>
-                  {categoryIcons[selected.category] || "📍"} {selected.category}
+                  {categoryIcons[selected.category] || "📍"}{" "}
+                  {selected.category}
                 </span>
               </div>
 
               {selected.lat == null || selected.lng == null ? (
                 <div className="no-coordinates">
                   <MapPin size={16} />
-                  Точная метка пока не установлена. Открой место в AMap, чтобы
-                  посмотреть расположение.
+                  Точная метка пока не установлена. Открой место в AMap,
+                  чтобы посмотреть расположение.
                 </div>
               ) : (
                 <div className="coordinate-note">
@@ -374,15 +410,18 @@ export default function Home() {
           <div className="results-heading">
             <div>
               <strong>Места</strong>
-              <span>{filtered.length} найдено · {mappedCount} на карте</span>
+              <span>
+                {filtered.length} найдено · {mappedCount} на карте
+              </span>
             </div>
+
             <button className="text-button" onClick={resetFilters}>
               Сбросить всё
             </button>
           </div>
 
           <div className="places-results">
-            {filtered.map(place => (
+            {filtered.map((place) => (
               <button
                 key={place.id}
                 className={`result-item ${
@@ -397,6 +436,7 @@ export default function Home() {
                 <span className="result-copy">
                   <strong>{place.name}</strong>
                   <small>{place.nameEn}</small>
+
                   <span className="result-tags">
                     {place.days.join(" · ")} <i>·</i> {place.category}
                   </span>
@@ -404,7 +444,9 @@ export default function Home() {
 
                 <span
                   className={`pin-status ${
-                    place.lat != null && place.lng != null ? "has-pin" : ""
+                    place.lat != null && place.lng != null
+                      ? "has-pin"
+                      : ""
                   }`}
                   title={
                     place.lat != null && place.lng != null
@@ -419,17 +461,21 @@ export default function Home() {
 
             {filtered.length === 0 && (
               <div className="empty-results">
-                Ничего не найдено. Попробуй другое название или сбрось фильтры.
+                Ничего не найдено. Попробуй другое название или сбрось
+                фильтры.
               </div>
             )}
           </div>
 
           <footer className="sidebar-footer">
             <span>
-              <i className="legend-dot mapped" /> Метка установлена
+              <i className="legend-dot mapped" />
+              Метка установлена
             </span>
+
             <span>
-              <i className="legend-dot missing" /> Нет координат
+              <i className="legend-dot missing" />
+              Нет координат
             </span>
           </footer>
         </div>
