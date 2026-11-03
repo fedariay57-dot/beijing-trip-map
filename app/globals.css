@@ -94,6 +94,7 @@ button{cursor:pointer}
 .leaflet-control-attribution{font-size:9px!important}
 
 .mobile-sheet-handle{display:none}
+.sidebar-scroll{min-height:0}
 
 /* МОБИЛЬНАЯ ВЕРСИЯ */
 @media(max-width:760px){
@@ -154,7 +155,7 @@ button{cursor:pointer}
   }
 
   .sidebar.mobile-sheet--list{
-    height:52dvh;
+    height:58dvh;
     transform:translateY(0);
   }
 
@@ -209,9 +210,30 @@ button{cursor:pointer}
     text-overflow:ellipsis;
   }
 
-  .sidebar-header{
-    flex:none;
+  /* Вся внутренняя часть панели прокручивается целиком */
+  .sidebar-scroll{
+    display:block;
+    flex:1 1 0;
     min-height:0;
+    height:0;
+    width:100%;
+    overflow-x:hidden;
+    overflow-y:auto;
+    overscroll-behavior-y:contain;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-y;
+    padding-bottom:12px;
+    scrollbar-width:thin;
+    scrollbar-color:#cbd3c9 transparent;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar{width:5px}
+  .sidebar-scroll::-webkit-scrollbar-thumb{
+    background:#cbd3c9;
+    border-radius:5px;
+  }
+
+  .sidebar-header{
     padding:5px 16px 10px;
   }
 
@@ -221,15 +243,11 @@ button{cursor:pointer}
   .total-badge{padding:5px 10px}
 
   .search-box{
-    flex:none;
-    min-height:39px;
     height:39px;
     margin:0 14px 10px;
   }
 
   .filter-section{
-    flex:none;
-    min-height:0;
     padding:0 14px 9px;
   }
 
@@ -246,84 +264,39 @@ button{cursor:pointer}
   .day-chip{padding:6px 9px;flex:none}
 
   .advanced-filters{
-    max-height:180px;
-    overflow-y:auto;
-  }
-
-  /* Список: карточка скрыта, прокручивается только область результатов */
-  .mobile-sheet--list .selected-card,
-  .mobile-sheet--collapsed .selected-card{
-    display:none;
-  }
-
-  .results-heading{
-    flex:none;
-    min-height:39px;
-    padding:9px 16px;
-    margin-top:2px;
-    background:#fff;
-  }
-
-  .places-results{
-    display:block;
-    flex:1 1 0;
-    min-height:0;
-    height:0;
     max-height:none;
-    overflow-x:hidden;
-    overflow-y:auto;
-    overscroll-behavior-y:contain;
-    -webkit-overflow-scrolling:touch;
-    touch-action:pan-y;
-    padding:0 8px 12px;
-    scrollbar-width:thin;
-    scrollbar-color:#cbd3c9 transparent;
+    overflow:visible;
   }
 
-  .places-results::-webkit-scrollbar{
-    width:5px;
-  }
-
-  .places-results::-webkit-scrollbar-thumb{
-    background:#cbd3c9;
-    border-radius:5px;
-  }
-
-  .result-item{
-    flex:none;
-    padding:9px 8px;
-  }
-
-  .result-copy strong{font-size:11px}
-  .result-tags{font-size:9px}
-
-  /* Карточка занимает доступное пространство и прокручивается отдельно */
-  .mobile-sheet--detail .results-heading,
-  .mobile-sheet--detail .places-results{
-    display:none;
-  }
-
-  .mobile-sheet--detail .selected-card{
-    display:block;
-    flex:1 1 0;
-    min-height:0;
-    height:0;
+  .selected-card{
     max-height:none;
-    overflow-x:hidden;
-    overflow-y:auto;
-    overscroll-behavior-y:contain;
-    -webkit-overflow-scrolling:touch;
-    touch-action:pan-y;
+    overflow:visible;
     margin:0 14px 10px;
     padding:12px;
-    scrollbar-width:thin;
   }
 
   .selected-card h2{font-size:16px}
   .selected-description{font-size:11px}
 
+  .results-heading{
+    padding:9px 16px;
+    margin-top:2px;
+  }
+
+  .places-results{
+    display:block;
+    overflow:visible;
+    height:auto;
+    max-height:none;
+    min-height:0;
+    padding:0 8px 8px;
+  }
+
+  .result-item{padding:9px 8px}
+  .result-copy strong{font-size:11px}
+  .result-tags{font-size:9px}
+
   .sidebar-footer{
-    flex:none;
     padding:8px 14px;
     background:#fff;
   }
